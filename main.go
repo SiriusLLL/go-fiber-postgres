@@ -38,7 +38,21 @@ func (r *Repository) CreateBook(context *fiber.Ctx) error {
 	context.Status(http.StatusOK).JSON(&fiber.Map{
 		"message": "book has been added"})
 	return nil
+}
 
+func (r *Repository) GetBooks(context *fiber.Ctx) error {
+	bookModels := &[]models.Books{}
+
+	err := r.DB.Find(bookModels).Error
+	if err != nil {
+		context.Status(http.StatusBadRequest).JSON(&fiber.Map{
+			"message": "could not get books"})
+		return err
+	}
+	context.Status(http.StatusOK).JSON(&fiber.Map{
+		"message": "books fetched successfully",
+		"data":    bookModels})
+	return nil
 }
 
 func (r *Repository) SetupRoutes(app *fiber.App) {
