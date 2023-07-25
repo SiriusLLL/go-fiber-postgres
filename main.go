@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -81,6 +82,30 @@ func (r *Repository) GetBooks(context *fiber.Ctx) error {
 	return nil
 }
 
+func (r *Repository) GetBookById(context *fiber.Ctx) error {
+	id := context.Params("id")
+	bookModel := &models.Books{}
+	if id == "" {
+		context.Status(http.StatusInternalServerError).JSON(&fiber.Map{
+			"message": "id could not empty",
+		})
+	}
+	fmt.Println("the id is:", id)
+
+	err := r.DB.Where("id = ?", id).First(bookModel).Error
+	if err != nil {
+		context.Status(http.StatusBadRequest).JSON(&fiber.Map{
+			"message": "could not get the book",
+		})
+		return err
+	}
+	context.Status(http.StatusOK).JSON(&fiber.Map{
+		"message": "book id fetched successfully",
+		"data":    bookModel,
+	})
+	return nil
+}
+
 func (r *Repository) SetupRoutes(app *fiber.App) {
 	api := app.Group("/api")
 	api.Post("/create_books", r.CreateBook)
@@ -107,6 +132,11 @@ func main() {
 	db, err1 := storage.NewConnection(config)
 	if err1 != nil {
 		log.Fatal("could not load the database")
+	}
+
+	err2 := models.MigrateBooks(db)
+	if err2 != nil {
+		log.Fatal("could not migrate db")
 	}
 
 	r := Repository{
