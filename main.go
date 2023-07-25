@@ -14,7 +14,7 @@ import (
 )
 
 type Book struct {
-	Auther    string `json:"auther"`
+	Auther    string `json:"author"`
 	Title     string `json:"title"`
 	Publisher string `json:"publisher"`
 }
@@ -55,7 +55,7 @@ func (r *Repository) DeleteBook(context *fiber.Ctx) error {
 	}
 
 	err := r.DB.Delete(bookModel, id)
-	if err != nil {
+	if err.Error != nil {
 		context.Status(http.StatusBadRequest).JSON(&fiber.Map{
 			"message": "could not delete book",
 		})
